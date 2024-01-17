@@ -5,8 +5,8 @@ function set12 = a1_20273117(elist)
 %     elist - Mx2 array of edges, each row is a pair of vertices
 % OUT:
 %     set12 - Nx1 vertex clsutering, -1 for SET1 and +1 for SET2
-    elist = load("20vhjh.txt");
     % Problem size: number of vertices in the graph
+    elist = load("20vhjh.txt")
     n = max(elist(:));
 
     % %
@@ -37,7 +37,7 @@ function set12 = a1_20273117(elist)
     D1 = diag(D1Vec);
     
     %Form Laplacian Matrix
-    L1 = D1 - A;
+    L1 = D1 - A
     
     %Calculate Eigenvalues and Eigenvectors
     [eigVec1, eigVal1] = eig(L1);
@@ -57,7 +57,7 @@ function set12 = a1_20273117(elist)
     set1 = [];
     set2 = [];
     for idx = 1:n
-        if set12(idx) == 1
+        if set12(idx) == -1
             set1 = [set1 , idx];
         else
             set2 = [set2 , idx];
