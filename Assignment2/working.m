@@ -19,25 +19,10 @@ function [rmsvars lowIndexPositive lowIndexNegative] = a2q1
     %dataMatrix is all the data normalized without frag and countries
     %countries is countries
     %ageMatrix are a 2xN of the age ranges
-    % Compute the RMS errors for linear regression
-    % %
-    % % STUDENT CODE GOES HERE: REMOVE THE NEXT 3 LINES AND THIS COMMENT
-    % % THEN PERFORM THE COMPUTATIONS
-    % %
-    %One Vector for this data size
-    onesVec = ones(size(fragilityVector,1), 1);
-    %Loop through each age group
-    for i = 1:cols
-        atest = [dataMatrix(:, i) , onesVec];
-        wtest = atest\fragilityVector;
+    ainterp = [dataMatrix() ones([size(dataMatrix,1), 1])]
 
-        rmsvars = (fragilityVector - atest*wtest);
-    end
-    %Find lowest RMS error of fit
-    [val,lowIndex] = min(rmsvars);
-
-    lowIndexPositive = 1;
-    lowIndexNegative = cols;
+    lowIndexPositive = min(rmsvars);
+    lowIndexNegative = min(rmsvars);
     
     % Find the regression on your choice of standardized
     % or unstandardized variables

@@ -17,8 +17,8 @@ function [rmsvars lowIndexPositive lowIndexNegative rmstrain rmstest] = a2_20273
 %         RMSTRAIN - 1x5 array of RMS errors for 5-fold training
 %         RMSTEST  - 1x5 array of RMS errors for 5-fold testing
  
-    [rmsvars lowIndexPositive lowIndexNegative] = a2q1;
-    [rmstrain rmstest] = a2q2(lowIndexPositive);
+    [rmsvars lowIndexPositive lowIndexNegative] = a2q1
+    [rmstrain rmstest] = a2q2(lowIndexPositive)
 
 end
 
@@ -43,56 +43,34 @@ function [rmsvars lowIndexPositive lowIndexNegative] = a2q1
     %countries is countries
     %ageMatrix are a 2xN of the age ranges
     % Compute the RMS errors for linear regression
-    % %
-    % % STUDENT CODE GOES HERE: REMOVE THE NEXT 3 LINES AND THIS COMMENT
-    % % THEN PERFORM THE COMPUTATIONS
-    % %
-    %One Vector for this data size
-    onesVec = ones(size(fragilityVector,1), 1);
-    %Loop through each age group
+    datastand = zscore(dataMatrix);%standardize
+    cstand = zscore(fragilityVector);
+    
+    
+    %fragilityVector is cstand
+    
+    rmsvars = zeros(1, cols);
     for i = 1:cols
-        atest = dataMatrix(:,1:col ~= i);
-        wtest = atest\fragilityVector;
-
-        rmsvars = (fragilityVector - atest*wtest);
+        astand = datastand(:,i);
+        wstand = astand\cstand;
+        cstandpred = astand*wstand;
+        
+        corrvars(i) = linsolve(astand, cstand);
+        rmsvars(i) = rms(cstand - cstandpred);
     end
-    %Find lowest RMS error of fit
-    [val,lowIndex] = min(rmsvars);
-
-    lowIndexPositive = 1;
-    lowIndexNegative = cols;
     
-    % Find the regression on your choice of standardized
-    % or unstandardized variables
-    % %
-    % % STUDENT CODE GOES HERE: REMOVE THIS COMMENT
-    % % THEN PERFORM THE COMPUTATIONS
-    % %
-
-    % % SAMPLE PLOT: REMOVE THIS COMMENT AND THE NEXT 14 LINES OF CODE
-    % % THE "WFIT" VALUES ARE MADE UP FOR THIS EXAMPLE
-    % % XVALS ARE DEDUCED FROM THE PLOT; YVALS ARE THE LINEAR FIT
-    ageLo = ageMatrix(1, 1); % Where the age range starts
-    ageHi = ageMatrix(2, 1);% Where the age range ends
-    ageString = sprintf('Males in range %d:%d', ageLo, ageHi);
-    plot(dataMatrix(:,1), fragilityVector, '.', 'MarkerSize', 10);
-    xlabel('Proportion of Male Population');
-    ylabel('Fragility Index');
-    title(ageString);
-    wfit = [400, 30]; % Slope/intercept are made up for this data
-    axisVector = axis();
-    xVals = axisVector(1:2); % X for the left and right sides of the plot
-    yVals = wfit(1)*xVals + wfit(2); % Slope/intercept computation
-    hold on;
-    plot(xVals, yVals, 'k-');
-    hold off;
     
 
-    % Plot the results
-    % %
-    % % STUDENT CODE GOES HERE: REMOVE THIS COMMENT
-    % % THEN PLOT THE RESULTS
-    % %
+    negativeCorrIndex = corrvars < 0;
+    positiveCorrIndex = corrvars > 0;
+    negativeIndices = find(negativeCorrIndex);
+    positiveIndices = find(positiveCorrIndex);
+    %Find the closest to 0 for rmsvars
+    [~, minIndexNegative] = min(rmsvars(negativeIndices));
+    [~, minIndexPositive] = min(rmsvars(positiveIndices));
+    lowIndexNegative = negativeIndices(minIndexNegative);
+    lowIndexPositive = positiveIndices(minIndexPositive);
+
 
 end
 
@@ -112,25 +90,17 @@ function [rmstrain rmstest] = a2q2(lowndx)
     % Read the test data from a CSV file and find the size of the data
     [fragilityVector,dataMatrix,countries,ageMatrix]=fragilitydata;
     [m n] = size(dataMatrix);
-
+    
+    A = dataMatrix;
 
     % Create Xmat and yvec from the data and the input parameter,
     % accounting for no standardization of data
-    % %
-    % % STUDENT CODE GOES HERE: REMOVE THIS COMMENT
-    % % THEN ASSIGN THE VARIABLES FROM THE DATASET
-    % %
+    Xmat = A(:,[1:lowndx-1, lowndx+1:n]); %Other data as independent
+    yvec = A(:,lowndx); %Select new age group as proxy of fragility index
 
-    % Compute the RMS errors of 5-fold cross-validation
-    % %
-    % % STUDENT CODE GOES HERE: REMOVE THE NEXT 2 LINES AND THIS COMMENT
-    % % THEN PERFORM THE COMPUTATIONS
-    % %
-    rmstrain = 0.5*ones(1,5);
-    rmstest =  0.6*ones(1,5);
+    [rmstrain, rmstest] = mykfold(Xmat, yvec, 5);
 
 end
-
 function [rmstrain,rmstest]=mykfold(Xmat, yvec, k_in)
 % [RMSTRAIN,RMSTEST]=MYKFOLD(XMAT,yvec,K) performs a k-fold validation
 % of the least-squares linear fit of yvec to XMAT. If K is omitted,
@@ -153,24 +123,48 @@ function [rmstrain,rmstest]=mykfold(Xmat, yvec, k_in)
     else
         k = 5;
     end
+    
+    rng('default') %makes sure get same resuts each time (consistent seed)
+    randidx = randperm(linspace(1,M,1)); %random permutation of rows
+    
+    Xmatperm = Xmat(randidx, :); %data
+    yvecperm = yvec(randidx, :); %(new) dependent
 
     % Initialize the return variables
     rmstrain = zeros(1, k);
     rmstest  = zeros(1, k);
 
+    % Determine the number of rows per experiment
+    numInFold = floor(M/k);%Changed to floor because loop was going above 178
+    %Orignially round
+
     % Process each fold
     for ix=1:k
+        
         % %
         % % STUDENT CODE GOES HERE: replace the next 5 lines with code to
         % % (1) set up the "train" and "test" indexing for "xmat" and "yvec"
         % % (2) use the indexing to set up the "train" and "test" data
         % % (3) compute "wvec" for the training data
         % %
-        xmat_train  = [0 1];
-        yvec_train  = 0;
-        wvec = [0 0];
-        xmat_test = [0 1];
-        yvec_test = 0;
+        %Start and end index for test set of fold
+        teststart = (ix-1)*numInFold + 1; %Initial 1. currentteststart + numInFold
+        testend = teststart + numInFold - 1; %currentteststart+numInFold-1
+        
+        
+        %Set up train and test indices             
+        testindices(ix,:) = teststart:testend; %Each row(ix) different fold
+        trainidices(ix,:) = [1:teststart-1, testend+1:M]; %Train on non test data
+        
+        xmat_train  = Xmatperm(trainidices(ix,:),:);%Everything but first 36
+        yvec_train = yvecperm(trainidices(ix,:));%Everything but first 36
+
+        xmat_test = Xmatperm(testindices(ix,:),:);
+        yvec_test = yvecperm(testindices(ix,:));
+
+        %wvec for training
+        wvec = xmat_train\yvec_train;
+        
 
         rmstrain(ix) = rms(xmat_train*wvec - yvec_train);
         rmstest(ix)  = rms(xmat_test*wvec  - yvec_test);
