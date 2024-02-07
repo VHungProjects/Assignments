@@ -17,8 +17,8 @@ function [rmsvars lowIndexPositive lowIndexNegative rmstrain rmstest] = a2_20273
 %         RMSTRAIN - 1x5 array of RMS errors for 5-fold training
 %         RMSTEST  - 1x5 array of RMS errors for 5-fold testing
  
-    [rmsvars lowIndexPositive lowIndexNegative] = a2q1;
-    [rmstrain rmstest] = a2q2(lowIndexPositive);
+    [rmsvars lowIndexPositive lowIndexNegative] = a2q1
+    [rmstrain rmstest] = a2q2(lowIndexPositive)
 
 end
 
@@ -27,7 +27,7 @@ function [rmsvars lowIndexPositive lowIndexNegative] = a2q1
 % [RMSVARS LOWNDX]=A2Q1 finds the RMS errors of
 % linear regression of the data in the CSV file. The
 % individual RMS errors are returned in RMSVARS and the index of the
-% smallest RMS error is returned in LOWNDX. 
+% smallest RMS error is returned in LOWNDX.
 %
 % INPUTS:
 %         none
@@ -43,7 +43,7 @@ function [rmsvars lowIndexPositive lowIndexNegative] = a2q1
     %countries is countries
     %ageMatrix are a 2xN of the age ranges
     % Compute the RMS errors for linear regression
-    datastand = zscore([dataMatrix]);%standardize
+    datastand = zscore(dataMatrix);%standardize
     cstand = zscore(fragilityVector);
     
     
@@ -59,6 +59,7 @@ function [rmsvars lowIndexPositive lowIndexNegative] = a2q1
         rmsvars(i) = rms(cstand - cstandpred);
     end
     
+    
 
     negativeCorrIndex = corrvars < 0;
     positiveCorrIndex = corrvars > 0;
@@ -69,7 +70,6 @@ function [rmsvars lowIndexPositive lowIndexNegative] = a2q1
     [~, minIndexPositive] = min(rmsvars(positiveIndices));
     lowIndexNegative = negativeIndices(minIndexNegative);
     lowIndexPositive = positiveIndices(minIndexPositive);
-
 
 
 end
@@ -91,22 +91,13 @@ function [rmstrain rmstest] = a2q2(lowndx)
     [fragilityVector,dataMatrix,countries,ageMatrix]=fragilitydata;
     [m n] = size(dataMatrix);
     
-    A = zscore(dataMatrix);
-
+    A = dataMatrix;
 
     % Create Xmat and yvec from the data and the input parameter,
     % accounting for no standardization of data
-    % %
-    % % STUDENT CODE GOES HERE: REMOVE THIS COMMENT
-    % % THEN ASSIGN THE VARIABLES FROM THE DATASET
-    % %
     Xmat = A(:,[1:lowndx-1, lowndx+1:n]); %Other data as independent
     yvec = A(:,lowndx); %Select new age group as proxy of fragility index
-    % Compute the RMS errors of 5-fold cross-validation
-    % %
-    % % STUDENT CODE GOES HERE: REMOVE THE NEXT 2 LINES AND THIS COMMENT
-    % % THEN PERFORM THE COMPUTATIONS
-    % %
+
     [rmstrain, rmstest] = mykfold(Xmat, yvec, 5);
 
 end
@@ -178,7 +169,6 @@ function [rmstrain,rmstest]=mykfold(Xmat, yvec, k_in)
         rmstrain(ix) = rms(xmat_train*wvec - yvec_train);
         rmstest(ix)  = rms(xmat_test*wvec  - yvec_test);
     end
-    rmstrain = zscore
 
 end
 function [fragilityVector, dataMatrix, countries, ageMatrix] = ...

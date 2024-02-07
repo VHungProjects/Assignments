@@ -1,4 +1,4 @@
-function [rmsvars lowIndexPositive lowIndexNegative rmstrain rmstest] = a2_20273117
+function [rmsvars lowIndexPositive lowIndexNegative rmstrain rmstest] = a2_202re73117
 % [RMSVARS LOWNDX RMSTRAIN RMSTEST]=A3 finds the RMS errors of
 % linear regression of the data in the associated CSV file. The
 % individual RMS errors are returned in RMSVARS and the index of the
@@ -17,9 +17,13 @@ function [rmsvars lowIndexPositive lowIndexNegative rmstrain rmstest] = a2_20273
 %         RMSTRAIN - 1x5 array of RMS errors for 5-fold training
 %         RMSTEST  - 1x5 array of RMS errors for 5-fold testing
  
-    [rmsvars lowIndexPositive lowIndexNegative] = a2q1
+    [rmsvars lowIndexPositive lowIndexNegative] = a2q1;
     [rmstrain rmstest] = a2q2(lowIndexPositive)
+    %[rmstrain rmstest] = a2q2(lowIndexNegative)
 
+    % NOTE: you'll need to repeat line 21 but you'll have to keep track for
+    % the negatives since want to find both the positive and negative
+    % correlations
 end
 
 
@@ -44,8 +48,11 @@ function [rmsvars lowIndexPositive lowIndexNegative] = a2q1
     %ageMatrix are a 2xN of the age ranges
     % Compute the RMS errors for linear regression
     datastand = zscore(dataMatrix);%standardize
-    cstand = zscore(fragilityVector);
-    
+
+    % Note: you don't want to standardize the dependent vector, only the
+    % independent variable (data matrix)
+    % cstand = zscore(fragilityVector);
+    cstand = fragilityVector;
     
     %fragilityVector is cstand
     
@@ -54,23 +61,45 @@ function [rmsvars lowIndexPositive lowIndexNegative] = a2q1
         astand = datastand(:,i);
         wstand = astand\cstand;
         cstandpred = astand*wstand;
-        
-        corrvars(i) = linsolve(astand, cstand);
-        rmsvars(i) = rms(cstand - cstandpred);
+
+        error = cstand - wstand*astand;%N
+        % Note: lines 65 does the same thing as wstand on line 61.
+        % Instead, what you want to do is use equation (12.20) from Class
+        % 12. So first, create an residual error vector (e =  c − wa)
+        % so, c is your cstand, a is your astand and w is the wstand. Then
+        % you'll use line 70, and pass in that residual error vector (e)
+        corrvars(i) = wstand;
+        rmsvars(i) = rms(error);
     end
     
-    
+    % Note: to find the negative and positive correlations, you can use an
+    % if and else-statement. So you'll compare the values for the weight
+    % vector. 
+    % Here is the pseudocode:
+    % if wstand(1) > 0, then re-assign those values in a new vector as the
+    % positive correlations
+    % else, re-assign those vectors in a new vector as the negative
+    % correlations
 
-    negativeCorrIndex = corrvars < 0;
-    positiveCorrIndex = corrvars > 0;
-    negativeIndices = find(negativeCorrIndex);
-    positiveIndices = find(positiveCorrIndex);
+    for i = 1:cols
+        if corrvars(i) > 0
+            POScorr(i) = rmsvars(i);
+            NEGcorr(i) = inf;
+        else
+            NEGcorr(i) = rmsvars(i);
+            POScorr(i) = inf;
+        end
+    end
     %Find the closest to 0 for rmsvars
-    [~, minIndexNegative] = min(rmsvars(negativeIndices));
-    [~, minIndexPositive] = min(rmsvars(positiveIndices));
-    lowIndexNegative = negativeIndices(minIndexNegative);
-    lowIndexPositive = positiveIndices(minIndexPositive);
-
+    % NOTE: first variable = lowest rms value, second variable = its
+    % corresponding index
+    [~, lowIndexNegative] = min(NEGcorr);
+    [~, lowIndexPositive] = min(POScorr);
+    % NOTE: don't need lines  92-93
+    disp("lowIndexPositive = " + lowIndexPositive);
+    disp("lowIndexNegative = " + lowIndexNegative);
+    disp("rmsvars = ");
+    disp(rmsvars);
 
 end
 
@@ -95,8 +124,14 @@ function [rmstrain rmstest] = a2q2(lowndx)
 
     % Create Xmat and yvec from the data and the input parameter,
     % accounting for no standardization of data
-    Xmat = A(:,[1:lowndx-1, lowndx+1:n]); %Other data as independent
-    yvec = A(:,lowndx); %Select new age group as proxy of fragility index
+
+    % NOTE: Idea is close but for XMAT, you'll need to include a one's
+    % vector for the intercept form
+    % For yvec, it should be your dependent variable (just assign it to
+    % fragilityVector)
+    %Xmat = [A(:,[1:lowndx-1, lowndx+1:n]),ones(size(A, 1), 1)];
+    Xmat = [ones(size(A, 1), 1),A(:,[lowndx])]; %Other data as independent
+    yvec = fragilityVector; %Select new age group as proxy of fragility index
 
     [rmstrain, rmstest] = mykfold(Xmat, yvec, 5);
 
