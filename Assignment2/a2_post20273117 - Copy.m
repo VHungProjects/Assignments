@@ -1,4 +1,4 @@
-function [rmsvars lowIndexPositive lowIndexNegative rmstrain rmstest] = a2_20273117
+function [rmsvars lowIndexPositive lowIndexNegative rmstrain rmstest] = a2_202re73117
 % [RMSVARS LOWNDX RMSTRAIN RMSTEST]=A3 finds the RMS errors of
 % linear regression of the data in the associated CSV file. The
 % individual RMS errors are returned in RMSVARS and the index of the
