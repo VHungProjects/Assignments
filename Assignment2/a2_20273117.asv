@@ -129,8 +129,8 @@ function [rmstrain rmstest] = a2q2(lowndx)
     % vector for the intercept form
     % For yvec, it should be your dependent variable (just assign it to
     % fragilityVector)
-    %Xmat = [A(:,[1:lowndx-1, lowndx+1:n]),ones(size(A, 1), 1)];
-    Xmat = [A(:,lowndx),ones(size(A, 1), 1)];
+    Xmat = [A(:,[1:lowndx-1, lowndx+1:n]),ones(size(A, 1), 1)];
+    %Xmat = [A(:,lowndx),ones(size(A, 1), 1)];
     yvec = fragilityVector; %Select new age group as proxy of fragility index
 
 
