@@ -1,4 +1,4 @@
-function a3_00000000
+function a3_20273117
 % Function for CISC271, Winter 2024, Assignment #3
 
     %% Problem A
@@ -25,8 +25,8 @@ function a3_00000000
     %Zero mean
     figure; 
     gscatter(Xmat(:, col1), Xmat(:, col2), lvec);
-    xlabel("FIller");
-    ylabel("WDAS");
+    xlabel("Column 1");
+    ylabel("Column 2");
     title('Dimensionality reduction with lowest DB index');
     
     %% Problem B
@@ -60,7 +60,7 @@ function a3_00000000
     gscatter(ZSTD(:,1),ZSTD(:,2),lvec);
     xlabel("Component 1");
     ylabel("Component 2");
-    title('Scatter Plot of PCA Components')
+    title('Scatter Plot of Standardized PCA Components')
 
 
 
